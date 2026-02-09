@@ -2,18 +2,16 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Navigator OS | Interface G-III</title>
+    <title>Navigator OS | G-III Full Access</title>
     <style>
-        :root { --neon: #00f2ff; --bg: #030305; --surface: #0a0a12; --border: #1a1a2e; }
+        :root { --neon: #00f2ff; --bg: #030305; --surface: #0a0a12; --border: #1a1a2e; --red: #ff2e63; }
         body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; overflow-x: hidden; }
         
-        /* Glassmorphism Header */
         header { 
-            padding: 20px 50px; background: rgba(10, 10, 18, 0.8); backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; sticky: top; 
+            padding: 20px 50px; background: rgba(10, 10, 18, 0.9); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 90;
         }
 
-        /* Container & Cards */
         .container { padding: 40px; max-width: 1400px; margin: auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
         
@@ -21,30 +19,29 @@
             background: var(--surface); border: 1px solid var(--border); border-radius: 20px; 
             padding: 25px; transition: 0.4s; position: relative; overflow: hidden;
         }
-        .card:hover { border-color: var(--neon); box-shadow: 0 0 20px rgba(0, 242, 255, 0.1); }
+        .card:hover { border-color: var(--neon); transform: translateY(-5px); }
         .card::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--neon); }
 
-        /* Edition Overlay */
+        /* Edition & Creation Panel */
         #editor { 
             display: none; position: fixed; top: 0; right: 0; width: 450px; height: 100%; 
             background: #0d0d16; border-left: 1px solid var(--neon); padding: 40px; z-index: 100;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.5); overflow-y: auto;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.8); overflow-y: auto;
         }
 
-        /* Inputs Graphiques */
         input, textarea, select { 
             width: 100%; background: #000; border: 1px solid #222; color: #fff; 
-            padding: 12px; border-radius: 8px; margin: 10px 0; outline: none;
+            padding: 12px; border-radius: 8px; margin: 8px 0; outline: none; font-family: inherit;
         }
         input:focus { border-color: var(--neon); }
         
-        .btn-edit { 
-            background: transparent; color: var(--neon); border: 1px solid var(--neon); 
-            padding: 5px 15px; border-radius: 20px; cursor: pointer; float: right; 
-        }
-        .btn-save { background: var(--neon); color: #000; font-weight: bold; border: none; padding: 15px; border-radius: 8px; width: 100%; cursor: pointer; }
+        .btn-root-only { display: none; } /* Caché si pas connecté */
 
-        /* Stats Bars */
+        .btn-add { background: var(--neon); color: #000; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-edit { background: transparent; color: var(--neon); border: 1px solid var(--neon); padding: 5px 12px; border-radius: 20px; cursor: pointer; float: right; }
+        .btn-save { background: var(--neon); color: #000; font-weight: bold; border: none; padding: 15px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 20px; }
+        .btn-del { background: transparent; color: var(--red); border: 1px solid var(--red); padding: 10px; border-radius: 8px; width: 100%; cursor: pointer; margin-top: 10px; font-size: 0.8em; }
+
         .bar-wrap { background: #000; height: 6px; border-radius: 3px; margin: 10px 0; overflow: hidden; }
         .bar-fill { height: 100%; background: var(--neon); box-shadow: 0 0 10px var(--neon); transition: 1s ease-out; }
     </style>
@@ -52,8 +49,11 @@
 <body>
 
 <header>
-    <h1 style="margin:0; letter-spacing: 3px; font-weight: 200;">NAVIGATOR<span style="color:var(--neon); font-weight: 800;">OS</span></h1>
-    <button onclick="login()" id="btn-auth" style="background:none; color:#555; border:1px solid #333; cursor:pointer; border-radius:5px;">[ IDENTIFY_USER ]</button>
+    <div>
+        <h1 style="margin:0; letter-spacing: 3px; display: inline-block;">NAVIGATOR<span style="color:var(--neon);">OS</span></h1>
+        <button class="btn-root-only btn-add" id="add-nav-btn" onclick="openCreator()" style="margin-left: 20px;">+ NOUVEAU DOSSIER</button>
+    </div>
+    <button onclick="login()" id="btn-auth" style="background:none; color:#555; border:1px solid #333; cursor:pointer; padding: 10px 20px;">[ ACCÈS CHIFFRÉ ]</button>
 </header>
 
 <div class="container">
@@ -61,34 +61,37 @@
 </div>
 
 <div id="editor">
-    <button onclick="closeEditor()" style="float:right; background:none; color:red; border:none; cursor:pointer;">FERMER ✖</button>
-    <h2 id="edit-title">MODIFIER DOSSIER</h2>
+    <button onclick="closeEditor()" style="float:right; background:none; color:var(--red); border:none; cursor:pointer; font-weight: bold;">[ FERMER ]</button>
+    <h2 id="edit-title">ÉDITION DOSSIER</h2>
     <hr style="border:0; border-top:1px solid #222; margin: 20px 0;">
     
-    <label>ID UNIQUE (Non modifiable)</label>
-    <input type="text" id="ed-id" readonly style="opacity:0.5">
+    <label style="font-size: 0.7em; color: var(--neon);">IDENTIFIANT UNIQUE</label>
+    <input type="text" id="ed-id" placeholder="Ex: GianniB">
     
-    <label>Prénom & Nom</label>
+    <label style="font-size: 0.7em;">IDENTITÉ CIVILE</label>
     <div style="display:flex; gap:10px;">
         <input type="text" id="ed-prenom" placeholder="Prénom">
         <input type="text" id="ed-nom" placeholder="Nom">
     </div>
 
-    <label>Catégorie</label>
+    <label style="font-size: 0.7em;">GROUPE / CATÉGORIE</label>
     <select id="ed-cat">
-        <option value="🎮 Jeux Vidéo">Jeux Vidéo</option>
-        <option value="🏫 École">École</option>
-        <option value="💎 Prioritaire">Prioritaire</option>
+        <option value="🎮 JEUX VIDÉO">JEUX VIDÉO</option>
+        <option value="🏫 ÉCOLE">ÉCOLE</option>
+        <option value="🏀 LOISIRS">LOISIRS</option>
+        <option value="💎 PRIORITAIRE">PRIORITAIRE</option>
     </select>
 
-    <label>Notes</label>
-    <textarea id="ed-bio" rows="4"></textarea>
+    <label style="font-size: 0.7em;">ARCHIVES BIOGRAPHIQUES</label>
+    <textarea id="ed-bio" rows="4" placeholder="Notes sur le sujet..."></textarea>
 
-    <h3 style="color:var(--neon); margin-top:30px;">STATISTIQUES</h3>
-    <div id="ed-stats-list"></div>
+    <div id="stats-section">
+        <h3 style="color:var(--neon); margin-top:30px; font-size: 0.9em;">SYSTÈME DE JAUGE</h3>
+        <div id="ed-stats-list"></div>
+    </div>
 
-    <button class="btn-save" onclick="saveData()" style="margin-top:30px;">APPLIQUER LES CHANGEMENTS</button>
-    <button onclick="deleteData()" style="background:none; color:red; border:none; width:100%; margin-top:15px; cursor:pointer;">Supprimer le dossier</button>
+    <button class="btn-save" onclick="saveData()">[ SYNCHRONISER LES DONNÉES ]</button>
+    <button id="del-btn" class="btn-del" onclick="deleteData()">DÉTRUIRE L'ARCHIVE DÉFINITIVEMENT</button>
 </div>
 
 <script>
@@ -96,9 +99,14 @@
     let authCode = "";
     let fullData = {};
 
-    async function login() {
+    function login() {
         const c = prompt("ENTRER CODE ROOT :");
-        if(c === "ExpA22") { authCode = c; document.getElementById('btn-auth').innerText = "SESSION: GIANNI"; refresh(); }
+        if(c === "ExpA22") { 
+            authCode = c; 
+            document.getElementById('btn-auth').innerText = "SESSION: GIANNI"; 
+            document.querySelectorAll('.btn-root-only').forEach(el => el.style.display = "inline-block");
+            refresh(); 
+        }
     }
 
     async function refresh() {
@@ -110,80 +118,39 @@
         for (const [id, info] of Object.entries(fullData)) {
             let statsHtml = "";
             for (const [n, v] of Object.entries(info.stats)) {
-                statsHtml += `<div style="font-size:0.7em; margin-top:10px;">${n} (${v}%)</div><div class="bar-wrap"><div class="bar-fill" style="width:${v}%"></div></div>`;
+                statsHtml += `<div style="font-size:0.6em; margin-top:10px; opacity:0.6;">${n.toUpperCase()}</div><div class="bar-wrap"><div class="bar-fill" style="width:${v}%"></div></div>`;
             }
 
             grid.innerHTML += `
                 <div class="card">
-                    <button class="btn-edit" onclick="openEditor('${id}')">EDIT</button>
-                    <small style="color:var(--neon)">${info.category}</small>
+                    <button class="btn-root-only btn-edit" style="display:${authCode?'block':'none'}" onclick="openEditor('${id}')">MODIFIER</button>
+                    <small style="color:var(--neon); font-size:0.7em;">${info.category}</small>
                     <h2 style="margin:10px 0 5px 0">${info.prenom} ${info.nom}</h2>
-                    <p style="font-size:0.8em; color:#666; height:40px; overflow:hidden;">${info.bio}</p>
+                    <p style="font-size:0.8em; color:#666; height:35px; overflow:hidden; margin-bottom:15px;">${info.bio || "Pas d'archives."}</p>
                     ${statsHtml}
                 </div>`;
         }
-        checkHash(); // Vérifie si l'URL contient un #Modif:
+        checkHash();
+    }
+
+    function openCreator() {
+        window.location.hash = "Nouveau";
+        document.getElementById('edit-title').innerText = "NOUVEAU DOSSIER";
+        document.getElementById('editor').style.display = "block";
+        document.getElementById('ed-id').readOnly = false;
+        document.getElementById('ed-id').style.opacity = "1";
+        document.getElementById('del-btn').style.display = "none";
+        document.getElementById('stats-section').style.display = "none";
+        // Reset inputs
+        ['ed-id','ed-prenom','ed-nom','ed-bio'].forEach(i => document.getElementById(i).value = "");
     }
 
     function openEditor(id) {
-        if(!authCode) return alert("Accès Root requis.");
+        if(!authCode) return;
         window.location.hash = `Modif:${id}`;
         const info = fullData[id];
         
+        document.getElementById('edit-title').innerText = "ÉDITION : " + id;
         document.getElementById('editor').style.display = "block";
         document.getElementById('ed-id').value = id;
-        document.getElementById('ed-prenom').value = info.prenom;
-        document.getElementById('ed-nom').value = info.nom;
-        document.getElementById('ed-cat').value = info.category;
-        document.getElementById('ed-bio').value = info.bio;
-
-        const statList = document.getElementById('ed-stats-list');
-        statList.innerHTML = "";
-        for (const [n, v] of Object.entries(info.stats)) {
-            statList.innerHTML += `<label>${n}</label><input type="range" class="stat-slider" data-name="${n}" value="${v}" min="0" max="100" oninput="this.nextElementSibling.innerText = this.value + '%'"> <span>${v}%</span>`;
-        }
-    }
-
-    function checkHash() {
-        const h = window.location.hash;
-        if(h.startsWith("#Modif:")) {
-            const id = h.split(":")[1];
-            if(fullData[id]) openEditor(id);
-        }
-    }
-
-    function closeEditor() {
-        document.getElementById('editor').style.display = "none";
-        window.location.hash = "";
-    }
-
-    async function saveData() {
-        const id = document.getElementById('ed-id').value;
-        const stats = {};
-        document.querySelectorAll('.stat-slider').forEach(s => { stats[s.dataset.name] = parseInt(s.value); });
-
-        const payload = {
-            ami_id: id,
-            prenom: document.getElementById('ed-prenom').value,
-            nom: document.getElementById('ed-nom').value,
-            dob: "2000-01-01", // Tu peux rajouter un input date si besoin
-            bio: document.getElementById('ed-bio').value,
-            category: document.getElementById('ed-cat').value,
-            stats: stats,
-            access_code: authCode
-        };
-
-        await fetch(`${API_URL}/full_update`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning":"1"},
-            body: JSON.stringify(payload)
-        });
-        closeEditor();
-        refresh();
-    }
-
-    window.onhashchange = checkHash;
-    refresh();
-</script>
-</body>
-</html>
+        document.getElementById('ed-id').readOnly = true;
