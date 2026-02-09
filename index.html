@@ -2,53 +2,68 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Gianni Navigator | Private Access</title>
+    <title>Gianni Navigator | Dossiers Complets</title>
     <style>
-        :root { --bg: #050508; --card: #10101a; --accent: #00f2ff; --text: #ffffff; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 20px; }
-        .container { max-width: 900px; margin: auto; }
+        :root { --bg: #0a0a12; --card: #151525; --accent: #00f2ff; --text: #e0e0e0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; }
         
-        /* Navbar */
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; margin-bottom: 30px; }
-        .btn-staff { background: transparent; color: #444; border: 1px solid #222; padding: 5px 15px; cursor: pointer; border-radius: 20px; }
-        .btn-staff:hover { color: var(--accent); border-color: var(--accent); }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 30px; }
+        
+        /* Grid des Dossiers */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .dossier-card { background: var(--card); border-radius: 15px; padding: 20px; border-left: 5px solid var(--accent); }
+        .dossier-card h2 { margin: 0; color: var(--accent); }
+        .info-row { font-size: 0.8em; color: #aaa; margin: 5px 0; }
+        
+        /* Stats */
+        .stat-bar { background: #000; height: 8px; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+        .stat-fill { height: 100%; transition: width 0.6s; }
 
-        /* Stats Cards */
-        .ami-card { background: var(--card); border: 1px solid #222; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
-        .bar-outer { background: #000; height: 10px; border-radius: 5px; overflow: hidden; margin: 10px 0; }
-        .bar-inner { height: 100%; transition: width 0.5s; }
-
-        /* Admin Panel (Caché par défaut) */
-        #admin-panel { display: none; background: #161625; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); margin-top: 30px; }
-        input, select { background: #000; color: white; border: 1px solid #333; padding: 10px; margin: 5px; border-radius: 5px; }
-        .btn-send { background: var(--accent); color: black; font-weight: bold; border: none; padding: 10px 20px; cursor: pointer; }
+        /* Formulaires Admin */
+        #admin-panel { display: none; background: #1a1a30; padding: 25px; border-radius: 15px; margin-top: 40px; }
+        .form-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        input, textarea, select { background: #0a0a12; color: white; border: 1px solid #333; padding: 10px; border-radius: 5px; }
+        button { background: var(--accent); color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>🛰️ GIANNI <span style="color:var(--accent)">NAVIGATOR</span></h1>
-        <button class="btn-staff" onclick="unlockAdmin()">🔒 Staff Access</button>
+        <h1>📑 ARCHIVES GIANNI</h1>
+        <button style="background:transparent; color:white; border:1px solid #333;" onclick="unlock()">🔒 Accès Root</button>
     </div>
 
-    <div id="app">Chargement...</div>
+    <div id="app" class="grid"></div>
 
     <div id="admin-panel">
-        <h3 style="color:var(--accent); margin-top:0;">🛠️ Console d'Administration</h3>
-        <input type="text" id="adm-name" placeholder="Nom de l'ami">
-        <select id="adm-cat">
-            <option value="🎮 Jeux Vidéo">🎮 Jeux Vidéo</option>
-            <option value="🏫 École">🏫 École</option>
-            <option value="🏀 Loisirs">Loisirs</option>
-        </select>
-        <select id="adm-stat">
-            <option value="Niveau Global">Niveau Global</option>
-            <option value="Skill">Skill</option>
+        <h2 style="color:var(--accent)">🆕 Nouveau Dossier Complet</h2>
+        <div class="form-group">
+            <input type="text" id="id" placeholder="ID Unique (ex: GianniB)">
+            <select id="cat">
+                <option value="🎮 Jeux Vidéo">🎮 Jeux Vidéo</option>
+                <option value="🏫 École">🏫 École</option>
+                <option value="🏀 Sport">Sport</option>
+            </select>
+            <input type="text" id="prenom" placeholder="Prénom">
+            <input type="text" id="nom" placeholder="Nom">
+            <input type="date" id="dob">
+            <textarea id="bio" placeholder="Notes / Biographie rapide" style="grid-column: span 2"></textarea>
+        </div>
+        <button onclick="createDossier()">CRÉER LE DOSSIER</button>
+        
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #333;">
+        
+        <h3>📈 Modifier les Statistiques</h3>
+        <input type="text" id="upd-id" placeholder="ID de l'ami">
+        <select id="upd-stat">
             <option value="Loyauté">Loyauté</option>
+            <option value="Respect">Respect</option>
+            <option value="Skill">Skill</option>
         </select>
-        <input type="number" id="adm-val" placeholder="+/- %">
-        <button class="btn-send" onclick="sendData()">APPLIQUER</button>
+        <input type="number" id="upd-val" placeholder="+/- %">
+        <button onclick="updateStat()">MODIFIER</button>
     </div>
 </div>
 
@@ -56,60 +71,70 @@
     const API_URL = "https://economically-pseudoetymological-serenity.ngrok-free.dev";
     let myCode = "";
 
-    function unlockAdmin() {
-        const code = prompt("Entrez le code d'accès :");
-        if (code === "ExpA22") {
-            myCode = code;
-            document.getElementById('admin-panel').style.display = "block";
-            alert("Accès autorisé.");
-        } else {
-            alert("Code incorrect.");
+    function unlock() {
+        const c = prompt("Code d'accès :");
+        if(c === "ExpA22") { myCode = c; document.getElementById('admin-panel').style.display = "block"; }
+    }
+
+    async function load() {
+        const res = await fetch(`${API_URL}/data`, { headers: {"ngrok-skip-browser-warning": "1"} });
+        const data = await res.json();
+        const app = document.getElementById('app');
+        app.innerHTML = "";
+
+        for (const [id, info] of Object.entries(data)) {
+            let html = `
+                <div class="dossier-card">
+                    <small style="float:right">${info.category}</small>
+                    <h2>${info.prenom} ${info.nom.toUpperCase()}</h2>
+                    <div class="info-row">📅 Né le : ${info.dob}</div>
+                    <div style="font-size:0.85em; margin: 10px 0;"><em>"${info.bio}"</em></div>
+                    <hr style="border:0; border-top:1px solid #222">`;
+            
+            for (const [sName, sVal] of Object.entries(info.stats)) {
+                let color = sVal > 50 ? "#00ff88" : "#ff2e63";
+                html += `
+                    <div style="font-size:0.7em; margin-top:10px;">${sName.toUpperCase()} : ${sVal}%</div>
+                    <div class="stat-bar"><div class="stat-fill" style="width:${sVal}%; background:${color}"></div></div>`;
+            }
+            html += `</div>`;
+            app.innerHTML += html;
         }
     }
 
-    async function refresh() {
-        try {
-            const res = await fetch(`${API_URL}/stats`, { headers: {"ngrok-skip-browser-warning": "1"} });
-            const data = await res.json();
-            const container = document.getElementById('app');
-            container.innerHTML = "";
-
-            for (const [name, info] of Object.entries(data)) {
-                let card = `<div class="ami-card"><strong>👤 ${name}</strong> <small style="color:#666">(${info.category})</small>`;
-                for (const [sName, sVal] of Object.entries(info.stats)) {
-                    let color = sVal > 50 ? "#00ff88" : "#ff2e63";
-                    card += `
-                        <div style="font-size:0.8em; margin-top:10px;">${sName} : ${sVal}%</div>
-                        <div class="bar-outer"><div class="bar-inner" style="width:${sVal}%; background:${color}"></div></div>`;
-                }
-                card += `</div>`;
-                container.innerHTML += card;
-            }
-        } catch(e) { console.log("Erreur de connexion"); }
-    }
-
-    async function sendData() {
-        const payload = {
-            ami_name: document.getElementById('adm-name').value,
-            stat_name: document.getElementById('adm-stat').value,
-            change: parseInt(document.getElementById('adm-val').value),
-            category: document.getElementById('adm-cat').value,
-            access_code: myCode // On envoie le code saisi
-        };
-
-        const res = await fetch(`${API_URL}/update`, {
+    async function createDossier() {
+        await fetch(`${API_URL}/create_dossier`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "1"},
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+                ami_id: document.getElementById('id').value,
+                prenom: document.getElementById('prenom').value,
+                nom: document.getElementById('nom').value,
+                dob: document.getElementById('dob').value,
+                bio: document.getElementById('bio').value,
+                category: document.getElementById('cat').value,
+                access_code: myCode
+            })
         });
-        
-        const result = await res.json();
-        if(result.status === "error") alert(result.message);
-        refresh();
+        load();
     }
 
-    setInterval(refresh, 5000);
-    refresh();
+    async function updateStat() {
+        await fetch(`${API_URL}/update_stat`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "1"},
+            body: JSON.stringify({
+                ami_id: document.getElementById('upd-id').value,
+                stat_name: document.getElementById('upd-stat').value,
+                change: parseInt(document.getElementById('upd-val').value),
+                access_code: myCode
+            })
+        });
+        load();
+    }
+
+    setInterval(load, 5000);
+    load();
 </script>
 </body>
 </html>
