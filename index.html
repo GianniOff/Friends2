@@ -154,3 +154,79 @@
         document.getElementById('editor').style.display = "block";
         document.getElementById('ed-id').value = id;
         document.getElementById('ed-id').readOnly = true;
+        document.getElementById('ed-id').style.opacity = "0.4";
+        document.getElementById('del-btn').style.display = "block";
+        document.getElementById('stats-section').style.display = "block";
+
+        document.getElementById('ed-prenom').value = info.prenom;
+        document.getElementById('ed-nom').value = info.nom;
+        document.getElementById('ed-cat').value = info.category;
+        document.getElementById('ed-bio').value = info.bio;
+
+        const statList = document.getElementById('ed-stats-list');
+        statList.innerHTML = "";
+        for (const [n, v] of Object.entries(info.stats)) {
+            statList.innerHTML += `<div style="margin-top:10px;"><small>${n}</small><input type="range" class="stat-slider" data-name="${n}" value="${v}" min="0" max="100" oninput="this.nextElementSibling.innerText = this.value + '%'"> <span style="font-size:0.8em">${v}%</span></div>`;
+        }
+    }
+
+    async function saveData() {
+        const id = document.getElementById('ed-id').value;
+        if(!id) return alert("L'ID est obligatoire.");
+        
+        const stats = {};
+        document.querySelectorAll('.stat-slider').forEach(s => { stats[s.dataset.name] = parseInt(s.value); });
+
+        const payload = {
+            ami_id: id,
+            prenom: document.getElementById('ed-prenom').value,
+            nom: document.getElementById('ed-nom').value,
+            dob: "Non renseigné",
+            bio: document.getElementById('ed-bio').value,
+            category: document.getElementById('ed-cat').value,
+            stats: stats,
+            access_code: authCode
+        };
+
+        await fetch(`${API_URL}/full_update`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning":"1"},
+            body: JSON.stringify(payload)
+        });
+        closeEditor();
+        refresh();
+    }
+
+    async function deleteData() {
+        const id = document.getElementById('ed-id').value;
+        if(!confirm(`Voulez-vous vraiment EFFACER le dossier ${id} ?`)) return;
+
+        await fetch(`${API_URL}/delete`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning":"1"},
+            body: JSON.stringify({ ami_id: id, access_code: authCode })
+        });
+        closeEditor();
+        refresh();
+    }
+
+    function checkHash() {
+        const h = window.location.hash;
+        if(h.startsWith("#Modif:")) {
+            const id = h.split(":")[1];
+            if(fullData[id]) openEditor(id);
+        } else if(h === "#Nouveau") {
+            openCreator();
+        }
+    }
+
+    function closeEditor() {
+        document.getElementById('editor').style.display = "none";
+        window.location.hash = "";
+    }
+
+    window.onhashchange = checkHash;
+    refresh();
+</script>
+</body>
+</html>
