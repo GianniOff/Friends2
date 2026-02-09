@@ -2,100 +2,112 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gianni Navigator | Dashboard</title>
+    <title>Gianni Navigator Pro</title>
     <style>
-        :root { --bg: #0b0b14; --card: #161625; --accent: #ff2e63; --text: #eaeaea; --bar-bg: #1f1f33; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        h1 { text-align: center; color: var(--accent); }
-        .ami-card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border-left: 4px solid var(--accent); }
-        .stat-block { margin-bottom: 12px; }
-        .stat-info { display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 4px; }
-        .bar-container { background: var(--bar-bg); height: 10px; border-radius: 5px; overflow: hidden; }
-        .bar-fill { height: 100%; background: var(--accent); transition: width 0.5s; }
-        .admin-box { background: #1a1a2e; padding: 20px; border-radius: 12px; margin-top: 40px; }
-        .form-group { display: flex; flex-wrap: wrap; gap: 10px; }
-        input, select, button { padding: 10px; border-radius: 5px; border: none; }
-        button { background: var(--accent); color: white; cursor: pointer; font-weight: bold; }
+        :root { --bg: #0f0f1a; --card: #1a1a2e; --accent: #00d2ff; --danger: #ff2e63; --text: #f0f0f0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; }
+        .container { max-width: 900px; margin: auto; padding: 20px; }
+        .ami-card { 
+            background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 15px; 
+            position: relative; border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .delete-btn { 
+            position: absolute; top: 15px; right: 15px; background: none; border: none; 
+            color: var(--danger); cursor: pointer; font-size: 1.2em; 
+        }
+        .bar-container { background: #111; height: 12px; border-radius: 6px; margin: 10px 0; border: 1px solid #444; }
+        .bar-fill { height: 100%; border-radius: 6px; transition: width 0.8s ease; }
+        .admin-panel { background: #16213e; padding: 25px; border-radius: 15px; margin-top: 30px; border: 1px dashed var(--accent); }
+        input, select, button { background: #0f0f1a; color: white; border: 1px solid var(--accent); padding: 10px; margin: 5px; border-radius: 5px; }
+        button { background: var(--accent); color: #000; font-weight: bold; cursor: pointer; }
+        button:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 Gianni Navigator</h1>
-    <div id="app">Chargement...</div>
+    <h1 style="text-align:center">🛰️ GIANNI NAVIGATOR <span style="font-size: 0.5em; color: var(--accent);">PRO</span></h1>
+    <div id="status">Connexion au cerveau...</div>
+    <div id="app"></div>
 
-    <div class="admin-box">
-        <h3>⚙️ Administration</h3>
-        <div class="form-group">
-            <input type="text" id="target-name" placeholder="Nom">
-            <select id="target-stat">
-                <option value="Réputation">Réputation 🌟</option>
-                <option value="Bonté">Bonté ❤️</option>
-                <option value="Loyauté">Loyauté 🛡️</option>
-            </select>
-            <input type="number" id="target-change" placeholder="+/- %">
-            <button onclick="sendUpdate()">Appliquer</button>
-        </div>
+    <div class="admin-panel">
+        <h3>🛠️ Panneau de Contrôle</h3>
+        <input type="text" id="name" placeholder="Nom de l'Ami">
+        <select id="stat">
+            <option value="Confiance">Confiance 🤝</option>
+            <option value="Respect">Respect 🫡</option>
+            <option value="Loyauté">Loyauté 🛡️</option>
+        </select>
+        <input type="number" id="val" placeholder="+/- %">
+        <button onclick="update()">Mettre à jour</button>
     </div>
 </div>
 
 <script>
-    // METS TON LIEN NGROK ICI (change à chaque redémarrage du serveur)
     const API_URL = "https://economically-pseudoetymological-serenity.ngrok-free.dev";
 
-    async function refreshData() {
+    // Détermine la couleur de la barre intelligemment
+    function getBarColor(val) {
+        if (val < 30) return "#ff2e63"; // Rouge
+        if (val < 60) return "#f39c12"; // Orange
+        return "#00ff88"; // Vert
+    }
+
+    async function load() {
         try {
-            const response = await fetch(`${API_URL}/stats`, {
-                headers: { "ngrok-skip-browser-warning": "69420" }
-            });
-            const stats = await response.json();
+            const res = await fetch(`${API_URL}/stats`, { headers: {"ngrok-skip-browser-warning": "1"} });
+            const stats = await res.json();
             const app = document.getElementById('app');
             app.innerHTML = "";
+            document.getElementById('status').innerText = "✅ Système en ligne";
 
-            for (const [name, data] of Object.entries(stats)) {
-                let card = `<div class="ami-card"><strong>👤 ${name}</strong><br><br>`;
-                for (const [sName, sVal] of Object.entries(data)) {
-                    card += `
-                        <div class="stat-block">
-                            <div class="stat-info"><span>${sName}</span><span>${sVal}%</span></div>
-                            <div class="bar-container"><div class="bar-fill" style="width: ${sVal}%"></div></div>
-                        </div>`;
+            for (const [name, values] of Object.entries(stats)) {
+                let card = `<div class="ami-card">
+                    <button class="delete-btn" onclick="deleteAmi('${name}')">✖</button>
+                    <h2 style="margin-top:0">👤 ${name}</h2>`;
+                
+                for (const [sName, sVal] of Object.entries(values)) {
+                    card += `<div>
+                        <small>${sName} : ${sVal}%</small>
+                        <div class="bar-container">
+                            <div class="bar-fill" style="width:${sVal}%; background:${getBarColor(sVal)}"></div>
+                        </div>
+                    </div>`;
                 }
                 card += `</div>`;
                 app.innerHTML += card;
             }
-        } catch (err) {
-            document.getElementById('app').innerHTML = "Erreur de connexion au serveur.";
-            console.error(err);
+        } catch (e) {
+            document.getElementById('status').innerText = "❌ Serveur Hors-ligne";
         }
     }
 
-    async function sendUpdate() {
-        const name = document.getElementById('target-name').value;
-        const stat = document.getElementById('target-stat').value;
-        const val = document.getElementById('target-change').value;
+    async function update() {
+        const name = document.getElementById('name').value;
+        const stat = document.getElementById('stat').value;
+        const val = document.getElementById('val').value;
+        if(!name || !val) return;
 
-        if (!name || !val) return alert("Champs vides !");
-
-        try {
-            await fetch(`${API_URL}/update`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'ngrok-skip-browser-warning': '69420'
-                },
-                body: JSON.stringify({ami_name: name, stat_name: stat, change: parseInt(val)})
-            });
-            refreshData();
-        } catch (err) {
-            alert("Erreur lors de la mise à jour.");
-        }
+        await fetch(`${API_URL}/update`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "1"},
+            body: JSON.stringify({ami_name: name, stat_name: stat, change: parseInt(val)})
+        });
+        load();
     }
 
-    refreshData();
-    setInterval(refreshData, 5000);
+    async function deleteAmi(name) {
+        if(!confirm(`Supprimer ${name} ?`)) return;
+        await fetch(`${API_URL}/delete`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "1"},
+            body: JSON.stringify({ami_name: name})
+        });
+        load();
+    }
+
+    setInterval(load, 5000);
+    load();
 </script>
 </body>
 </html>
