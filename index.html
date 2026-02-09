@@ -2,118 +2,90 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Gianni Navigator | Ultimate Edition</title>
+    <title>Gianni Navigator | Private Access</title>
     <style>
-        :root { --bg: #050508; --card: #10101a; --accent: #00f2ff; --text: #ffffff; --gold: #ffd700; }
-        body { background: var(--bg); color: var(--text); font-family: 'Orbitron', sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: auto; }
+        :root { --bg: #050508; --card: #10101a; --accent: #00f2ff; --text: #ffffff; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; padding: 20px; }
+        .container { max-width: 900px; margin: auto; }
         
-        /* Login Style */
-        #auth-section { text-align: right; padding: 10px; border-bottom: 1px solid #222; margin-bottom: 20px; }
-        .btn-google { background: white; color: black; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        /* Navbar */
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; margin-bottom: 30px; }
+        .btn-staff { background: transparent; color: #444; border: 1px solid #222; padding: 5px 15px; cursor: pointer; border-radius: 20px; }
+        .btn-staff:hover { color: var(--accent); border-color: var(--accent); }
 
-        /* Cards Style */
-        .category-tag { background: var(--accent); color: black; font-size: 0.7em; padding: 2px 8px; border-radius: 10px; vertical-align: middle; }
-        .ami-card { 
-            background: var(--card); border: 1px solid #222; border-radius: 15px; padding: 20px; margin-bottom: 20px;
-            display: grid; grid-template-columns: 1fr 2fr; gap: 20px;
-        }
-        .stat-row { display: flex; align-items: center; justify-content: space-between; margin: 5px 0; font-size: 0.85em; }
-        .bar-outer { flex-grow: 1; background: #1a1a2e; height: 8px; margin: 0 10px; border-radius: 4px; overflow: hidden; }
-        .bar-inner { height: 100%; transition: width 1s ease-in-out; }
+        /* Stats Cards */
+        .ami-card { background: var(--card); border: 1px solid #222; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+        .bar-outer { background: #000; height: 10px; border-radius: 5px; overflow: hidden; margin: 10px 0; }
+        .bar-inner { height: 100%; transition: width 0.5s; }
 
-        /* Admin Panel */
-        #admin-panel { 
-            display: none; background: linear-gradient(45deg, #10101a, #1a1a2e); 
-            padding: 30px; border-radius: 15px; border: 1px solid var(--accent); margin-top: 50px; 
-        }
-        input, select { background: #000; color: white; border: 1px solid #333; padding: 10px; border-radius: 5px; margin: 5px; }
-        .btn-save { background: var(--accent); color: black; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        /* Admin Panel (Caché par défaut) */
+        #admin-panel { display: none; background: #161625; padding: 20px; border-radius: 12px; border: 1px solid var(--accent); margin-top: 30px; }
+        input, select { background: #000; color: white; border: 1px solid #333; padding: 10px; margin: 5px; border-radius: 5px; }
+        .btn-send { background: var(--accent); color: black; font-weight: bold; border: none; padding: 10px 20px; cursor: pointer; }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
 <div class="container">
-    <div id="auth-section">
-        <span id="user-mail">Visiteur</span>
-        <button class="btn-google" onclick="mockLogin()">Se connecter avec Google</button>
+    <div class="header">
+        <h1>🛰️ GIANNI <span style="color:var(--accent)">NAVIGATOR</span></h1>
+        <button class="btn-staff" onclick="unlockAdmin()">🔒 Staff Access</button>
     </div>
 
-    <h1 style="text-align:center; letter-spacing: 5px;">GIANNI <span style="color:var(--accent)">NAVIGATOR</span></h1>
-    
-    <div id="app"></div>
+    <div id="app">Chargement...</div>
 
     <div id="admin-panel">
-        <h2 style="color:var(--accent)">⚡ Console d'Administration</h2>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <input type="text" id="adm-name" placeholder="Nom de l'ami">
-            <select id="adm-cat">
-                <option value="🎮 Jeux Vidéo">🎮 Jeux Vidéo</option>
-                <option value="🏫 École">🏫 École</option>
-                <option value="🏀 Sport / Loisirs">🏀 Sport / Loisirs</option>
-                <option value="💎 Famille / Proche">💎 Famille / Proche</option>
-            </select>
-            <select id="adm-stat">
-                <option value="Niveau Global">Niveau Global 🏆</option>
-                <option value="Skill (Jeux)">Skill (Jeux) ⚡</option>
-                <option value="Loyauté">Loyauté 🛡️</option>
-                <option value="Humour">Humour 😂</option>
-                <option value="Toxicité">Toxicité ⚠️</option>
-            </select>
-            <input type="number" id="adm-val" placeholder="Changement (+/- %)">
-        </div>
-        <br>
-        <button class="btn-save" onclick="sendData()">APPLIQUER LES CHANGEMENTS</button>
+        <h3 style="color:var(--accent); margin-top:0;">🛠️ Console d'Administration</h3>
+        <input type="text" id="adm-name" placeholder="Nom de l'ami">
+        <select id="adm-cat">
+            <option value="🎮 Jeux Vidéo">🎮 Jeux Vidéo</option>
+            <option value="🏫 École">🏫 École</option>
+            <option value="🏀 Loisirs">Loisirs</option>
+        </select>
+        <select id="adm-stat">
+            <option value="Niveau Global">Niveau Global</option>
+            <option value="Skill">Skill</option>
+            <option value="Loyauté">Loyauté</option>
+        </select>
+        <input type="number" id="adm-val" placeholder="+/- %">
+        <button class="btn-send" onclick="sendData()">APPLIQUER</button>
     </div>
 </div>
 
 <script>
     const API_URL = "https://economically-pseudoetymological-serenity.ngrok-free.dev";
-    let currentUserEmail = "";
+    let myCode = "";
 
-    // Simulation de connexion Google (pour l'exemple)
-    function mockLogin() {
-        let email = prompt("Entre ton adresse email Google :");
-        currentUserEmail = email;
-        document.getElementById('user-mail').innerText = email;
-        
-        if(email === "gianni.blazquez@gmail.com") {
+    function unlockAdmin() {
+        const code = prompt("Entrez le code d'accès :");
+        if (code === "ExpA22") {
+            myCode = code;
             document.getElementById('admin-panel').style.display = "block";
-            alert("Bienvenue Maître Gianni. Accès total accordé.");
+            alert("Accès autorisé.");
         } else {
-            document.getElementById('admin-panel').style.display = "none";
-            alert("Accès visiteur uniquement.");
+            alert("Code incorrect.");
         }
     }
 
     async function refresh() {
-        const res = await fetch(`${API_URL}/stats`, { headers: {"ngrok-skip-browser-warning": "1"} });
-        const data = await res.json();
-        const container = document.getElementById('app');
-        container.innerHTML = "";
+        try {
+            const res = await fetch(`${API_URL}/stats`, { headers: {"ngrok-skip-browser-warning": "1"} });
+            const data = await res.json();
+            const container = document.getElementById('app');
+            container.innerHTML = "";
 
-        for (const [name, info] of Object.entries(data)) {
-            let card = `
-                <div class="ami-card">
-                    <div>
-                        <h2 style="margin:0">${name}</h2>
-                        <span class="category-tag">${info.category}</span>
-                    </div>
-                    <div>`;
-            
-            for (const [sName, sVal] of Object.entries(info.stats)) {
-                let color = sVal > 70 ? "#00f2ff" : (sVal > 40 ? "#ffd700" : "#ff2e63");
-                card += `
-                    <div class="stat-row">
-                        <span style="width:100px">${sName}</span>
-                        <div class="bar-outer"><div class="bar-inner" style="width:${sVal}%; background:${color}"></div></div>
-                        <span style="width:30px; text-align:right">${sVal}%</span>
-                    </div>`;
+            for (const [name, info] of Object.entries(data)) {
+                let card = `<div class="ami-card"><strong>👤 ${name}</strong> <small style="color:#666">(${info.category})</small>`;
+                for (const [sName, sVal] of Object.entries(info.stats)) {
+                    let color = sVal > 50 ? "#00ff88" : "#ff2e63";
+                    card += `
+                        <div style="font-size:0.8em; margin-top:10px;">${sName} : ${sVal}%</div>
+                        <div class="bar-outer"><div class="bar-inner" style="width:${sVal}%; background:${color}"></div></div>`;
+                }
+                card += `</div>`;
+                container.innerHTML += card;
             }
-            card += `</div></div>`;
-            container.innerHTML += card;
-        }
+        } catch(e) { console.log("Erreur de connexion"); }
     }
 
     async function sendData() {
@@ -122,7 +94,7 @@
             stat_name: document.getElementById('adm-stat').value,
             change: parseInt(document.getElementById('adm-val').value),
             category: document.getElementById('adm-cat').value,
-            email: currentUserEmail
+            access_code: myCode // On envoie le code saisi
         };
 
         const res = await fetch(`${API_URL}/update`, {
