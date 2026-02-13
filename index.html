@@ -2,194 +2,246 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Navigator OS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigator OS | Control Panel</title>
     <style>
-        :root { --bg: #0b0f1a; --card: #161c2d; --accent: #3b82f6; --text: #e2e8f0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; }
+        :root { --bg: #0b0f1a; --card: #161c2d; --accent: #3b82f6; --text: #e2e8f0; --danger: #ef4444; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow-x: hidden; }
         
-        /* Layout */
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #111827; border-bottom: 1px solid #1f2937; }
+        /* Header & Search */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #111827; border-bottom: 1px solid #1f2937; sticky; top: 0; z-index: 50; }
+        .search-box { flex: 1; margin: 0 30px; max-width: 600px; position: relative; }
+        .search-box input { width: 100%; background: #0b0f1a; border: 1px solid #374151; color: white; padding: 10px 20px; border-radius: 25px; outline: none; transition: 0.3s; }
+        .search-box input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+
+        /* Grid Layout */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; padding: 30px; }
         
-        /* Cards */
-        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid #2d3748; transition: 0.2s; position: relative; }
-        .card:hover { border-color: var(--accent); transform: translateY(-3px); }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
-        .status-actif { background: #10b981; }
+        /* Personnel Cards */
+        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid #2d3748; transition: 0.3s; cursor: pointer; position: relative; }
+        .card:hover { border-color: var(--accent); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-actif { background: #10b981; box-shadow: 0 0 8px #10b981; }
         .status-pause { background: #f59e0b; }
-        .status-archive { background: #ef4444; }
+        .status-archive { background: #64748b; }
         
-        .avatar-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #334155; }
+        .avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: #1f2937; border: 2px solid #374151; }
         
-        /* Stats */
-        .progress-container { margin: 10px 0; font-size: 12px; }
-        .progress-bg { background: #334155; height: 6px; border-radius: 3px; margin-top: 4px; }
-        .progress-fill { background: var(--accent); height: 100%; border-radius: 3px; transition: width 0.5s; }
+        /* Stats Bars */
+        .stat-row { margin: 12px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; }
+        .bar-bg { background: #1f2937; height: 6px; border-radius: 3px; margin-top: 4px; }
+        .bar-fill { background: var(--accent); height: 100%; border-radius: 3px; transition: width 0.8s ease-out; }
 
-        /* Modal */
-        #editor { position: fixed; right: -450px; top: 0; width: 400px; height: 100%; background: #111827; padding: 25px; transition: 0.3s; box-shadow: -5px 0 15px rgba(0,0,0,0.5); z-index: 100; overflow-y: auto; }
+        /* Sidebar Editor */
+        #editor { position: fixed; right: -450px; top: 0; width: 400px; height: 100%; background: #111827; padding: 30px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: -10px 0 30px rgba(0,0,0,0.5); z-index: 100; overflow-y: auto; }
         #editor.open { right: 0; }
-        input, select, textarea { width: 100%; background: #1f2937; border: 1px solid #374151; color: white; padding: 10px; border-radius: 6px; margin: 8px 0; box-sizing: border-box; }
-        .btn { padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
-        .btn-add { background: var(--accent); color: white; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; background: #1f2937; border: 1px solid #374151; color: white; padding: 12px; border-radius: 8px; box-sizing: border-box; }
+        
+        .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-prim { background: var(--accent); color: white; }
+        .btn-prim:hover { opacity: 0.9; }
+        
+        #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; z-index: 90; backdrop-filter: blur(3px); }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div style="font-size: 1.5rem; font-weight: 800; color: var(--accent)">NAVIGATOR <span style="font-weight: 300; color: white;">v5</span></div>
-    <div>
-        <button class="btn btn-add" id="btn-new" style="display:none" onclick="showEditor(null)">+ Nouveau Dossier</button>
-        <button class="btn" onclick="login()" id="btn-login" style="background:#374151; color:white;">Connexion Admin</button>
+    <div style="font-size: 1.4rem; font-weight: 900; color: var(--accent)">NAVIGATOR <span style="font-weight: 300; color: white;">v6.1</span></div>
+    
+    <div class="search-box">
+        <input type="text" id="search" placeholder="Rechercher un profil, une bio ou un tag..." oninput="render()">
+    </div>
+
+    <div style="display:flex; gap:10px;">
+        <button class="btn btn-prim" id="add-btn" style="display:none" onclick="openEditor(null)">+ Nouveau</button>
+        <button class="btn" onclick="authenticate()" id="auth-btn" style="background:#374151; color:white;">Login</button>
     </div>
 </div>
 
-<div class="grid" id="main-grid"></div>
+<div class="grid" id="container"></div>
+
+<div id="overlay" onclick="closeEditor()"></div>
 
 <div id="editor">
-    <h2 id="edit-title">Gestion de Dossier</h2>
-    <label>ID Unique</label><input type="text" id="in-id">
-    <div style="display:flex; gap:10px;">
-        <input type="text" id="in-prenom" placeholder="Prénom">
-        <input type="text" id="in-nom" placeholder="Nom">
+    <h2 id="title">Dossier Profil</h2>
+    <div class="form-group">
+        <label>ID UNIQUE</label>
+        <input type="text" id="ed-id" placeholder="ex: gianni_01">
     </div>
-    <label>Catégorie</label>
-    <select id="in-cat"><option>Ami</option><option>Travail</option><option>VIP</option><option>Cible</option></select>
-    <label>Statut</label>
-    <select id="in-status"><option value="actif">Actif</option><option value="pause">En attente</option><option value="archive">Terminé / Archivé</option></select>
-    <input type="text" id="in-avatar" placeholder="URL de l'image (Avatar)">
-    <textarea id="in-bio" placeholder="Notes confidentielles..." rows="4"></textarea>
+    <div style="display:flex; gap:10px;" class="form-group">
+        <input type="text" id="ed-prenom" placeholder="Prénom">
+        <input type="text" id="ed-nom" placeholder="Nom">
+    </div>
+    <div class="form-group">
+        <label>CATÉGORIE & STATUT</label>
+        <div style="display:flex; gap:10px;">
+            <select id="ed-cat"><option>Ami</option><option>Professionnel</option><option>VIP</option><option>Cible</option></select>
+            <select id="ed-status"><option value="actif">Actif</option><option value="pause">En pause</option><option value="archive">Archivé</option></select>
+        </div>
+    </div>
+    <div class="form-group">
+        <label>URL AVATAR</label>
+        <input type="text" id="ed-avatar" placeholder="https://...">
+    </div>
+    <div class="form-group">
+        <label>BIOGRAPHIE / NOTES</label>
+        <textarea id="ed-bio" rows="4"></textarea>
+    </div>
     
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
-        <b>Statistiques</b>
-        <button class="btn" style="background:#374151; font-size:10px;" onclick="addStatRow()">+ Ajouter</button>
+    <div style="display:flex; justify-content:space-between; margin-top:20px; border-top:1px solid #374151; padding-top:15px;">
+        <b style="font-size:14px;">STATISTIQUES</b>
+        <button class="btn" style="padding:4px 8px; font-size:10px; background:#374151; color:white;" onclick="addStat()">+ Ajouter</button>
     </div>
-    <div id="stat-inputs"></div>
+    <div id="stats-list"></div>
 
-    <button class="btn btn-add" style="width:100%; margin-top:20px;" onclick="save()">💾 Enregistrer</button>
-    <button class="btn" style="width:100%; margin-top:10px; background:#7f1d1d;" id="btn-del" onclick="del()">Supprimer</button>
-    <button class="btn" style="width:100%; margin-top:10px; background:none; border:1px solid #374151; color:white;" onclick="closeEditor()">Annuler</button>
+    <button class="btn btn-prim" style="width:100%; margin-top:25px;" onclick="save()">💾 Sauvegarder</button>
+    <button class="btn" style="width:100%; margin-top:10px; background:var(--danger); color:white; display:none;" id="del-btn" onclick="remove()">Supprimer le dossier</button>
 </div>
 
 <script>
-    const API = "https://TON-URL-NGROK.ngrok-free.dev"; // METS TON URL ICI
+    // 1. CONFIGURATION - METS TON URL ICI
+    const API = "https://economically-pseudoetymological-serenity.ngrok-free.dev";
     let DATA = {};
-    let PASS = "";
+    let TOKEN = "";
 
     async function load() {
-        const r = await fetch(`${API}/data`, { headers: {"ngrok-skip-browser-warning":"1"} });
-        DATA = await r.json();
-        const grid = document.getElementById('main-grid');
-        grid.innerHTML = "";
-        
+        try {
+            const r = await fetch(`${API}/data`, { headers: {"ngrok-skip-browser-warning":"1"} });
+            DATA = await r.json();
+            render();
+        } catch(e) { console.error("Serveur hors ligne"); }
+    }
+
+    function render() {
+        const query = document.getElementById('search').value.toLowerCase();
+        const container = document.getElementById('container');
+        container.innerHTML = "";
+
         Object.entries(DATA).forEach(([id, d]) => {
-            let stats = "";
+            if(query && !(`${d.prenom} ${d.nom} ${d.cat} ${d.bio}`).toLowerCase().includes(query)) return;
+
+            let statsHtml = "";
             Object.entries(d.stats).forEach(([n, v]) => {
-                stats += `<div class="progress-container">${n} (${v}%)<div class="progress-bg"><div class="progress-fill" style="width:${v}%"></div></div></div>`;
+                statsHtml += `
+                    <div class="stat-row">
+                        <div style="display:flex; justify-content:space-between"><span>${n}</span><span>${v}%</span></div>
+                        <div class="bar-bg"><div class="bar-fill" style="width:${v}%"></div></div>
+                    </div>`;
             });
 
-            grid.innerHTML += `
-                <div class="card" onclick="showEditor('${id}')">
+            container.innerHTML += `
+                <div class="card" onclick="openEditor('${id}')">
                     <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
-                        <img src="${d.avatar || 'https://via.placeholder.com/60'}" class="avatar-img">
+                        <img src="${d.avatar || 'https://www.w3schools.com/howto/img_avatar.png'}" class="avatar">
                         <div>
-                            <div style="font-weight:bold">${d.prenom} ${d.nom}</div>
-                            <div style="font-size:11px; color:#94a3b8"><span class="status-dot status-${d.status}"></span> ${d.cat} • ${d.date}</div>
+                            <div style="font-weight:bold; font-size:1.1rem;">${d.prenom} ${d.nom}</div>
+                            <div style="font-size:11px; color:#94a3b8">
+                                <span class="status-dot status-${d.status}"></span> ${d.cat.toUpperCase()}
+                            </div>
                         </div>
                     </div>
-                    <div style="font-size:13px; color:#cbd5e1; height:40px; overflow:hidden;">${d.bio}</div>
-                    <div style="margin-top:15px; border-top:1px solid #1f2937; padding-top:10px;">${stats}</div>
-                </div>
-            `;
+                    <div style="font-size:13px; color:#cbd5e1; line-height:1.4; height:36px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;">${d.bio}</div>
+                    <div style="margin-top:15px;">${statsHtml}</div>
+                    <div style="font-size:9px; color:#475569; margin-top:10px;">Enregistré le ${d.date}</div>
+                </div>`;
         });
     }
 
-    function showEditor(id) {
-        if(!PASS) return alert("Connexion requise");
+    function openEditor(id) {
+        if(!TOKEN) return alert("Veuillez vous connecter.");
         document.getElementById('editor').classList.add('open');
-        const area = document.getElementById('stat-inputs');
-        area.innerHTML = "";
+        document.getElementById('overlay').style.display = "block";
+        const list = document.getElementById('stats-list');
+        list.innerHTML = "";
 
-        if(id && DATA[id]) {
+        if(id) {
             const d = DATA[id];
-            document.getElementById('in-id').value = id;
-            document.getElementById('in-id').disabled = true;
-            document.getElementById('in-prenom').value = d.prenom;
-            document.getElementById('in-nom').value = d.nom;
-            document.getElementById('in-cat').value = d.cat;
-            document.getElementById('in-status').value = d.status;
-            document.getElementById('in-avatar').value = d.avatar;
-            document.getElementById('in-bio').value = d.bio;
-            Object.entries(d.stats).forEach(([k,v]) => addStatRow(k,v));
-            document.getElementById('btn-del').style.display = "block";
+            document.getElementById('ed-id').value = id;
+            document.getElementById('ed-id').disabled = true;
+            document.getElementById('ed-prenom').value = d.prenom;
+            document.getElementById('ed-nom').value = d.nom;
+            document.getElementById('ed-cat').value = d.cat;
+            document.getElementById('ed-status').value = d.status;
+            document.getElementById('ed-avatar').value = d.avatar;
+            document.getElementById('ed-bio').value = d.bio;
+            Object.entries(d.stats).forEach(([k,v]) => addStat(k,v));
+            document.getElementById('del-btn').style.display = "block";
         } else {
-            document.getElementById('in-id').value = "";
-            document.getElementById('in-id').disabled = false;
-            document.getElementById('in-prenom').value = "";
-            document.getElementById('in-nom').value = "";
-            document.getElementById('in-bio').value = "";
-            addStatRow("Loyauté", 50);
-            document.getElementById('btn-del').style.display = "none";
+            document.getElementById('ed-id').value = "";
+            document.getElementById('ed-id').disabled = false;
+            document.getElementById('ed-prenom').value = "";
+            document.getElementById('ed-nom').value = "";
+            document.getElementById('ed-bio').value = "";
+            addStat("Fidélité", 70);
+            document.getElementById('del-btn').style.display = "none";
         }
     }
 
-    function addStatRow(k="", v=50) {
+    function addStat(k="", v=50) {
         const div = document.createElement('div');
-        div.className = "st-row";
-        div.innerHTML = `<div style="display:flex; gap:5px"><input type="text" value="${k}" class="sn" placeholder="Nom stat" style="flex:2"><input type="number" value="${v}" class="sv" style="flex:1"></div>`;
-        document.getElementById('stat-inputs').appendChild(div);
+        div.className = "stat-input-row";
+        div.style = "display:flex; gap:5px; margin-top:5px;";
+        div.innerHTML = `<input type="text" value="${k}" class="sk" placeholder="Nom" style="flex:2">
+                         <input type="number" value="${v}" class="sv" style="flex:1">`;
+        document.getElementById('stats-list').appendChild(div);
     }
 
     async function save() {
         const stats = {};
-        document.querySelectorAll('.st-row').forEach(r => {
-            const n = r.querySelector('.sn').value;
-            const v = r.querySelector('.sv').value;
-            if(n) stats[n] = parseInt(v);
+        document.querySelectorAll('.stat-input-row').forEach(row => {
+            const k = row.querySelector('.sk').value;
+            const v = row.querySelector('.sv').value;
+            if(k) stats[k] = parseInt(v);
         });
 
-        const payload = {
-            id: document.getElementById('in-id').value,
-            prenom: document.getElementById('in-prenom').value,
-            nom: document.getElementById('in-nom').value,
-            category: document.getElementById('in-cat').value,
-            status: document.getElementById('in-status').value,
-            bio: document.getElementById('in-bio').value,
-            avatar: document.getElementById('in-avatar').value,
-            stats: stats, code: PASS
+        const p = {
+            id: document.getElementById('ed-id').value,
+            prenom: document.getElementById('ed-prenom').value,
+            nom: document.getElementById('ed-nom').value,
+            category: document.getElementById('ed-cat').value,
+            status: document.getElementById('ed-status').value,
+            avatar: document.getElementById('ed-avatar').value,
+            bio: document.getElementById('ed-bio').value,
+            stats: stats, code: TOKEN
         };
 
         await fetch(`${API}/update`, {
-            method: 'POST', 
+            method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
+            body: JSON.stringify(p)
         });
         closeEditor(); load();
     }
 
-    async function del() {
-        if(!confirm("Supprimer ce dossier définitivement ?")) return;
+    async function remove() {
+        if(!confirm("Supprimer définitivement ?")) return;
         await fetch(`${API}/delete`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({id: document.getElementById('in-id').value, code: PASS})
+            body: JSON.stringify({id: document.getElementById('ed-id').value, code: TOKEN})
         });
         closeEditor(); load();
     }
 
-    function login() {
-        const p = prompt("Code d'accès :");
+    function authenticate() {
+        const p = prompt("Code secret :");
         if(p === "ExpA22") {
-            PASS = p;
-            document.getElementById('btn-login').innerText = "Admin Connecté";
-            document.getElementById('btn-new').style.display = "block";
+            TOKEN = p;
+            document.getElementById('auth-btn').innerText = "Admin ✅";
+            document.getElementById('add-btn').style.display = "block";
         }
     }
 
-    function closeEditor() { document.getElementById('editor').classList.remove('open'); }
+    function closeEditor() {
+        document.getElementById('editor').classList.remove('open');
+        document.getElementById('overlay').style.display = "none";
+    }
 
     load();
-    setInterval(load, 20000);
+    setInterval(load, 30000); // Rafraîchir toutes les 30s
 </script>
 </body>
 </html>
