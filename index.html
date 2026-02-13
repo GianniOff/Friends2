@@ -2,19 +2,17 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Navigator v7 | Secure Access</title>
+    <title>Navigator v7.1 | Secure Admin</title>
     <style>
-        :root { --bg: #05070a; --card: #11141d; --accent: #3b82f6; --text: #e2e8f0; }
+        :root { --bg: #05070a; --card: #11141d; --accent: #3b82f6; --text: #e2e8f0; --danger: #ef4444; }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; }
-        .navbar { display: flex; justify-content: space-between; padding: 15px 30px; background: #0a0c14; border-bottom: 1px solid #1f2937; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #0a0c14; border-bottom: 1px solid #1f2937; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; padding: 30px; }
         
-        /* Carte Publique (ID seulement) */
         .public-card { background: var(--card); border: 1px solid #2d3748; padding: 30px; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .public-card:hover { border-color: var(--accent); transform: scale(1.02); }
+        .public-card:hover { border-color: var(--accent); transform: translateY(-3px); }
         .id-badge { font-family: monospace; color: var(--accent); font-weight: bold; font-size: 1.2rem; }
 
-        /* Sidebar Editor */
         #editor { position: fixed; right: -500px; top: 0; width: 450px; height: 100%; background: #0a0c14; padding: 30px; transition: 0.4s; z-index: 100; overflow-y: auto; border-left: 2px solid var(--accent); box-sizing: border-box; }
         #editor.open { right: 0; }
         .cat-chip { display: inline-block; background: #1f2937; padding: 4px 10px; border-radius: 15px; font-size: 10px; margin-right: 5px; margin-top: 5px; border: 1px solid var(--accent); }
@@ -23,15 +21,24 @@
         .check-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; }
         .check-item { font-size: 12px; display: flex; align-items: center; gap: 5px; }
         .check-item input { width: auto; margin: 0; }
-        .btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; width: 100%; }
+        
+        .btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-prim { background: var(--accent); color: white; width: 100%; margin-top: 10px; }
         #overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 90; }
+
+        /* Stats bars in view mode */
+        .stat-bar-bg { background: #1f2937; height: 6px; border-radius: 3px; margin: 5px 0 10px 0; }
+        .stat-bar-fill { background: var(--accent); height: 100%; border-radius: 3px; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div style="font-weight: 900; color: var(--accent)">NAVIGATOR <span style="color:white">V7</span></div>
-    <button id="admin-btn" onclick="askAdmin()" style="background:none; border:1px solid #333; color:white; cursor:pointer; padding:5px 15px; border-radius:4px;">Mode Admin</button>
+    <div style="font-weight: 900; color: var(--accent); font-size: 1.2rem;">NAVIGATOR <span style="color:white">V7.1</span></div>
+    <div style="display:flex; gap:10px;">
+        <button id="new-btn" onclick="openNewDossier()" style="display:none; background:var(--accent); color:white; border:none; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">+ Nouveau Dossier</button>
+        <button id="admin-btn" onclick="askAdmin()" style="background:none; border:1px solid #333; color:white; cursor:pointer; padding:8px 15px; border-radius:4px;">Mode Admin</button>
+    </div>
 </div>
 
 <div class="grid" id="public-grid"></div>
@@ -39,40 +46,55 @@
 <div id="overlay" onclick="closeEditor()"></div>
 
 <div id="editor">
-    <h2 id="view-title">Détails du Compte</h2>
-    <div id="view-only-content" style="display:none">
+    <h2 id="view-title">Détails</h2>
+    
+    <div id="view-only-content">
         <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
-            <img id="v-avatar" style="width:70px; height:70px; border-radius:50%; object-fit:cover;">
+            <img id="v-avatar" style="width:70px; height:70px; border-radius:50%; object-fit:cover; background:#111;">
             <div>
                 <div id="v-full-name" style="font-weight:bold; font-size:1.4rem;"></div>
                 <div id="v-cats"></div>
             </div>
         </div>
-        <p id="v-bio" style="font-size:14px; color:#94a3b8; background:#161b22; padding:15px; border-radius:8px;"></p>
+        <p id="v-bio" style="font-size:14px; color:#94a3b8; background:#161b22; padding:15px; border-radius:8px; min-height:50px;"></p>
         <div id="v-stats"></div>
     </div>
 
-    <div id="admin-form" style="display:none">
-        <label>ID UNIQUE</label><input type="text" id="ed-id">
-        <label>PRÉNOM / NOM</label>
-        <div style="display:flex; gap:10px;"><input type="text" id="ed-prenom"><input type="text" id="ed-nom"></div>
+    <div id="admin-form" style="display:none; border-top: 1px solid #333; pt-20px; margin-top:20px;">
+        <h3 style="color:var(--accent)">Configuration Admin</h3>
+        <label>ID UNIQUE (ex: dossier_01)</label>
+        <input type="text" id="ed-id">
         
-        <label>CATÉGORIES (Plusieurs choix possibles)</label>
+        <div style="display:flex; gap:10px;">
+            <div style="flex:1"><label>Prénom</label><input type="text" id="ed-prenom"></div>
+            <div style="flex:1"><label>Nom</label><input type="text" id="ed-nom"></div>
+        </div>
+        
+        <label>CATÉGORIES</label>
         <div class="check-group" id="cat-checks">
             <div class="check-item"><input type="checkbox" value="Ami"> Ami</div>
             <div class="check-item"><input type="checkbox" value="Travail"> Travail</div>
             <div class="check-item"><input type="checkbox" value="VIP"> VIP</div>
             <div class="check-item"><input type="checkbox" value="Cible"> Cible</div>
-            <div class="check-item"><input type="checkbox" value="Urgent"> Urgent</div>
         </div>
 
-        <label>MOT DE PASSE DU PROFIL</label>
-        <input type="text" id="ed-pass" placeholder="Le mot de passe pour CE profil">
+        <label>MOT DE PASSE DU DOSSIER</label>
+        <input type="text" id="ed-pass" placeholder="Requis pour la consultation publique">
         
-        <label>AVATAR URL</label><input type="text" id="ed-avatar">
-        <label>BIO</label><textarea id="ed-bio"></textarea>
+        <label>URL IMAGE AVATAR</label>
+        <input type="text" id="ed-avatar">
         
-        <button class="btn" style="background:var(--accent); color:white" onclick="save()">Enregistrer les modifications</button>
+        <label>NOTES / BIO</label>
+        <textarea id="ed-bio" rows="4"></textarea>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <b>STATISTIQUES</b>
+            <button onclick="addStatRow()" style="font-size:10px; background:#333; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">+ Ajouter Stat</button>
+        </div>
+        <div id="ed-stats-area" style="margin-top:10px;"></div>
+        
+        <button class="btn btn-prim" onclick="save()">💾 Enregistrer le Dossier</button>
+        <button class="btn" id="del-btn" style="background:var(--danger); color:white; margin-top:10px; width:100%;" onclick="remove()">Supprimer définitivement</button>
     </div>
 </div>
 
@@ -87,13 +109,14 @@
         grid.innerHTML = ids.map(id => `
             <div class="public-card" onclick="accessProfile('${id}')">
                 <div class="id-badge">${id}</div>
-                <div style="font-size:10px; margin-top:10px; color:#444">CLIQUEZ POUR DÉVERROUILLER</div>
+                <div style="font-size:10px; margin-top:10px; color:#475569">ACCÈS SÉCURISÉ</div>
             </div>
         `).join('');
     }
 
+    // Ouvrir un dossier existant (demande mdp)
     async function accessProfile(id) {
-        const pass = prompt(`Entrez le mot de passe pour accéder à [${id}] :`);
+        const pass = prompt(`Mot de passe pour [${id}] :`);
         if(!pass) return;
 
         const r = await fetch(`${API}/get_details`, {
@@ -104,68 +127,134 @@
 
         if(r.ok) {
             const data = await r.json();
-            showDetails(data);
+            showInEditor(data, false);
         } else {
-            alert("Mot de passe incorrect");
+            alert("Accès refusé.");
         }
     }
 
-    function showDetails(data) {
+    // Ouvrir le formulaire pour un NOUVEAU dossier
+    function openNewDossier() {
+        if(!ADMIN_CODE) return;
+        showInEditor({
+            id: "", prenom: "", nom: "", bio: "", avatar: "", 
+            categories: [], stats: {"Loyauté": 50}, profile_pass: ""
+        }, true);
+    }
+
+    function showInEditor(data, isNew) {
         document.getElementById('editor').classList.add('open');
         document.getElementById('overlay').style.display = "block";
-        
+        const statsArea = document.getElementById('ed-stats-area');
+        statsArea.innerHTML = "";
+
+        // Si on est Admin, on montre le formulaire
         if(ADMIN_CODE) {
-            // Mode Edition
             document.getElementById('admin-form').style.display = "block";
             document.getElementById('view-only-content').style.display = "none";
+            
             document.getElementById('ed-id').value = data.id;
-            document.getElementById('ed-prenom').value = data.prenom;
-            document.getElementById('ed-nom').value = data.nom;
-            document.getElementById('ed-avatar').value = data.avatar;
-            document.getElementById('ed-bio').value = data.bio;
-            // Cocher les cases
+            document.getElementById('ed-id').disabled = !isNew; // Désactivé si édition
+            document.getElementById('ed-prenom').value = data.prenom || "";
+            document.getElementById('ed-nom').value = data.nom || "";
+            document.getElementById('ed-avatar').value = data.avatar || "";
+            document.getElementById('ed-bio').value = data.bio || "";
+            document.getElementById('ed-pass').value = data.password || ""; // Le serveur renvoie le pass si admin ok
+            
+            // Stats
+            if(data.stats) {
+                Object.entries(data.stats).forEach(([k,v]) => addStatRow(k,v));
+            }
+
+            // Checkboxes
             document.querySelectorAll('#cat-checks input').forEach(cb => {
-                cb.checked = data.categories.includes(cb.value);
+                cb.checked = data.categories ? data.categories.includes(cb.value) : false;
             });
+            
+            document.getElementById('del-btn').style.display = isNew ? "none" : "block";
         } else {
             // Mode Lecture Seule
             document.getElementById('admin-form').style.display = "none";
             document.getElementById('view-only-content').style.display = "block";
             document.getElementById('v-full-name').innerText = `${data.prenom} ${data.nom}`;
             document.getElementById('v-avatar').src = data.avatar || "https://via.placeholder.com/70";
-            document.getElementById('v-bio').innerText = data.bio;
+            document.getElementById('v-bio').innerText = data.bio || "Aucune note.";
             document.getElementById('v-cats').innerHTML = data.categories.map(c => `<span class="cat-chip">${c}</span>`).join('');
+            
+            // Affichage des barres de stats
+            let sHtml = "";
+            Object.entries(data.stats).forEach(([k,v]) => {
+                sHtml += `<div style="font-size:11px; margin-top:10px;">${k} (${v}%)</div>
+                          <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${v}%"></div></div>`;
+            });
+            document.getElementById('v-stats').innerHTML = sHtml;
         }
+    }
+
+    function addStatRow(k="", v=50) {
+        const div = document.createElement('div');
+        div.className = "stat-input-row";
+        div.style = "display:flex; gap:5px; margin-bottom:5px;";
+        div.innerHTML = `<input type="text" value="${k}" class="sk" placeholder="Nom stat" style="flex:2; margin:0">
+                         <input type="number" value="${v}" class="sv" style="flex:1; margin:0">`;
+        document.getElementById('ed-stats-area').appendChild(div);
     }
 
     async function save() {
         const selectedCats = Array.from(document.querySelectorAll('#cat-checks input:checked')).map(cb => cb.value);
-        const p = {
+        const stats = {};
+        document.querySelectorAll('.stat-input-row').forEach(row => {
+            const k = row.querySelector('.sk').value;
+            const v = row.querySelector('.sv').value;
+            if(k) stats[k] = parseInt(v);
+        });
+
+        const payload = {
             id: document.getElementById('ed-id').value,
             prenom: document.getElementById('ed-prenom').value,
             nom: document.getElementById('ed-nom').value,
             categories: selectedCats,
-            status: "actif", bio: document.getElementById('ed-bio').value,
+            status: "actif",
+            bio: document.getElementById('ed-bio').value,
             avatar: document.getElementById('ed-avatar').value,
-            stats: {}, 
+            stats: stats,
             profile_pass: document.getElementById('ed-pass').value,
             admin_code: ADMIN_CODE
         };
 
-        await fetch(`${API}/update`, {
+        if(!payload.id || !payload.profile_pass) return alert("L'ID et le Mot de Passe dossier sont obligatoires !");
+
+        const r = await fetch(`${API}/update`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(p)
+            body: JSON.stringify(payload)
+        });
+
+        if(r.ok) {
+            closeEditor();
+            loadPublic();
+        } else {
+            alert("Erreur lors de l'enregistrement.");
+        }
+    }
+
+    async function remove() {
+        if(!confirm("Supprimer ce dossier ?")) return;
+        await fetch(`${API}/delete`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({id: document.getElementById('ed-id').value, code: ADMIN_CODE})
         });
         closeEditor(); loadPublic();
     }
 
     function askAdmin() {
         const p = prompt("Code Administrateur :");
-        if(p) {
+        if(p === "ExpA22") { // À vérifier par le serveur normalement, mais simplifié ici pour ton test
             ADMIN_CODE = p;
-            document.getElementById('admin-btn').innerText = "Mode Admin ✅";
-            alert("Mode admin activé. Cliquez sur un dossier ou créez-en un via la console (optionnel).");
+            document.getElementById('admin-btn').innerText = "Admin ✅";
+            document.getElementById('new-btn').style.display = "block";
+            alert("Mode Admin Activé. Vous pouvez créer ou modifier des dossiers.");
         }
     }
 
