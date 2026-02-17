@@ -2,24 +2,29 @@ const API = "https://economically-pseudoetymological-serenity.ngrok-free.dev";
 let ADMIN_CODE = "";
 let currentId = "";
 
-// --- THEME ---
+// Headers par défaut pour passer Ngrok et le CORS
+const getHeaders = () => ({
+    "ngrok-skip-browser-warning": "true",
+    "Content-Type": "application/json"
+});
+
 function toggleTheme() {
     const body = document.documentElement;
     const isDark = body.getAttribute('data-theme') === 'dark';
-    const newTheme = isDark ? 'light' : 'dark';
-    body.setAttribute('data-theme', newTheme);
+    body.setAttribute('data-theme', isDark ? 'light' : 'dark');
     document.getElementById('theme-btn').innerText = isDark ? '🌙' : '☀️';
 }
 
-// --- CORE ---
 async function loadPublic() {
-    const r = await fetch(`${API}/public_list`, { headers: {"ngrok-skip-browser-warning":"1"} });
-    const ids = await r.json();
-    document.getElementById('main-grid').innerHTML = ids.map(id => `
-        <div class="public-card" onclick="openProfile('${id}')">
-            <h3 style="margin:0">${id}</h3>
-            <p style="font-size:12px; color:var(--muted)">DOSSIER SÉCURISÉ</p>
-        </div>`).join('');
+    try {
+        const r = await fetch(`${API}/public_list`, { headers: getHeaders() });
+        const ids = await r.json();
+        document.getElementById('main-grid').innerHTML = ids.map(id => `
+            <div class="public-card" onclick="openProfile('${id}')">
+                <h3>${id}</h3>
+                <p style="font-size:12px; color:var(--muted)">DOSSIER SÉCURISÉ</p>
+            </div>`).join('');
+    } catch(e) { console.error("Erreur de chargement", e); }
 }
 
 async function openProfile(id) {
@@ -27,14 +32,15 @@ async function openProfile(id) {
     let pass = ADMIN_CODE ? "" : prompt("Mot de passe :");
     if(!ADMIN_CODE && !pass) return;
 
-    const r = await fetch(`${API}/get_details`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning":"1"},
-        body: JSON.stringify({id: id, password: pass, admin_code: ADMIN_CODE})
-    });
-
-    if(r.ok) renderProfile(await r.json());
-    else alert("Accès révoqué.");
+    try {
+        const r = await fetch(`${API}/get_details`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({id: id, password: pass, admin_code: ADMIN_CODE})
+        });
+        if(r.ok) renderProfile(await r.json());
+        else alert("Accès refusé.");
+    } catch(e) { alert("Erreur serveur."); }
 }
 
 function renderProfile(d) {
@@ -77,14 +83,14 @@ async function save() {
         badges: document.getElementById('ed-badges').value,
         admin_code: ADMIN_CODE
     };
-    await fetch(`${API}/update`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p)});
+    await fetch(`${API}/update`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(p)});
     alert("Mis à jour !");
     closeProfile(); loadPublic();
 }
 
 async function remove() {
-    if(!confirm("Supprimer ce dossier ?")) return;
-    await fetch(`${API}/delete`, { method: 'POST', headers: {'Content-Type': 'application/json'}, 
+    if(!confirm("Supprimer ?")) return;
+    await fetch(`${API}/delete`, { method: 'POST', headers: getHeaders(), 
         body: JSON.stringify({id: document.getElementById('ed-id').value, code: ADMIN_CODE})});
     closeProfile(); loadPublic();
 }
@@ -92,7 +98,7 @@ async function remove() {
 async function addReport() {
     const data = { id: currentId, texte: document.getElementById('rep-texte').value, 
                    importance: parseInt(document.getElementById('rep-imp').value), admin_code: ADMIN_CODE };
-    await fetch(`${API}/add_rapport`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)});
+    await fetch(`${API}/add_rapport`, { method: 'POST', headers: getHeaders(), body: JSON.stringify(data)});
     document.getElementById('rep-texte').value = "";
     openProfile(currentId);
 }
@@ -110,6 +116,7 @@ function askAdmin() {
 function openNew() {
     currentId = "";
     renderProfile({id:"", prenom:"", nom:"", bio:"", avatar:"", profession:"", localisation:"", badges:"", rapports:[], password:""});
+    document.getElementById('ed-id').disabled = false;
 }
 
 function closeProfile() { document.getElementById('profile-page').style.display = "none"; }
