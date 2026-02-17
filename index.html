@@ -2,327 +2,208 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Navigator v10 | Classified System</title>
+    <title>Navigator v11 | Intelligence System</title>
     <style>
-        :root { --bg: #030508; --card: #0d1117; --accent: #3b82f6; --text: #f0f6fc; --danger: #f85149; }
-        body { background: var(--bg); color: var(--text); font-family: 'Courier New', Courier, monospace; margin: 0; }
-        
-        /* Navigation */
+        :root { --bg: #030508; --card: #0d1117; --accent: #3b82f6; --text: #f0f6fc; --danger: #f85149; --success: #238636; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; }
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; background: #0d1117; border-bottom: 1px solid #30363d; }
-        
-        /* Grille des dossiers */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; padding: 40px; }
-        .public-card { background: var(--card); border: 1px solid #30363d; padding: 30px; border-radius: 4px; text-align: center; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
-        .public-card:hover { border-color: var(--accent); transform: scale(1.02); }
-        .public-card::before { content: "TOP SECRET"; position: absolute; top: 10px; right: -30px; background: var(--danger); color: black; font-size: 10px; padding: 2px 30px; transform: rotate(45deg); opacity: 0.6; }
+        .public-card { background: var(--card); border: 1px solid #30363d; padding: 30px; border-radius: 8px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .public-card:hover { border-color: var(--accent); }
 
-        /* MODALE PROFIL */
+        /* BADGES */
+        .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; background: #21262d; border: 1px solid #30363d; margin-right: 5px; text-transform: uppercase; }
+        .badge-vip { border-color: gold; color: gold; }
+
+        /* CASIER / RAPPORTS */
+        .casier-container { margin-top: 30px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 20px; }
+        .rapport-item { padding: 10px; border-left: 4px solid #30363d; margin-bottom: 10px; background: #161b22; font-size: 14px; }
+        .rap-pos { border-left-color: var(--success); }
+        .rap-neg { border-left-color: var(--danger); }
+        .rap-neutre { border-left-color: var(--accent); }
+
         #profile-page { position: fixed; inset: 0; background: var(--bg); z-index: 200; display: none; overflow-y: auto; padding: 40px; }
-        
-        /* STYLE DE CENSURE */
-        .redacted {
-            background: black;
-            color: black;
-            user-select: none;
-            padding: 0 4px;
-            border-radius: 2px;
-            cursor: not-allowed;
-            letter-spacing: -2px; /* Rend le texte compact */
-        }
-        
-        /* ADMIN PANEL */
-        .admin-box { background: #161b22; border: 1px dashed var(--accent); padding: 25px; margin-top: 40px; display: none; }
-        .censure-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; background: #0d1117; padding: 15px; margin: 15px 0; border: 1px solid #30363d; }
-        
-        /* INPUTS */
-        input, select, textarea { width: 100%; background: #0d1117; border: 1px solid #30363d; color: var(--text); padding: 10px; box-sizing: border-box; font-family: inherit; margin-bottom: 10px; }
-        .btn { padding: 12px 20px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-        .btn-save { background: var(--accent); color: white; width: 100%; margin-top: 20px; }
-        .btn-del { background: var(--danger); color: white; width: 100%; margin-top: 10px; }
-
-        /* STATS */
-        .stat-bar { background: #21262d; height: 10px; margin-top: 5px; border-radius: 5px; overflow: hidden; }
-        .stat-fill { background: var(--accent); height: 100%; width: 0%; transition: width 1s ease-in-out; }
+        .admin-box { background: #161b22; border: 1px dashed var(--accent); padding: 25px; margin-top: 40px; border-radius: 12px; }
+        input, select, textarea { width: 100%; background: #0d1117; border: 1px solid #30363d; color: white; padding: 10px; margin-bottom: 10px; border-radius: 6px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .redacted { background: black; color: black; }
     </style>
 </head>
 <body>
 
 <div class="navbar">
-    <div style="font-weight: 900; color: var(--accent); font-size: 1.5rem;">NAVIGATOR <span style="color:white">v10</span></div>
-    <div style="display:flex; gap:10px;">
-        <button id="btn-new" onclick="openNew()" style="display:none; background:var(--accent); color:white;" class="btn">+ DOSSIER</button>
-        <button id="admin-btn" onclick="askAdmin()" class="btn" style="background:none; border:1px solid #333; color:white;">Login Admin</button>
+    <div style="font-weight: 900; color: var(--accent); font-size: 1.5rem;">NAVIGATOR <span style="color:white">v11</span></div>
+    <div>
+        <button id="btn-new" onclick="openNew()" style="display:none; background:var(--accent); color:white;" class="btn">+ Nouveau</button>
+        <button id="admin-btn" onclick="askAdmin()" class="btn" style="background:#21262d; color:white;">Admin</button>
     </div>
 </div>
 
 <div class="grid" id="main-grid"></div>
 
 <div id="profile-page">
-    <div style="max-width: 900px; margin: auto;">
-        <button onclick="closeProfile()" class="btn" style="background:#30363d; color:white; margin-bottom:20px;">← FERMER LE DOSSIER</button>
+    <div style="max-width: 800px; margin: auto;">
+        <button onclick="closeProfile()" class="btn" style="background:#333; color:white; margin-bottom:20px;">← Fermer</button>
 
-        <div style="display:flex; gap:30px; align-items:flex-start;">
-            <img id="v-avatar" style="width:160px; height:160px; object-fit:cover; background:#111; border:2px solid #30363d;">
-            <div style="flex:1;">
-                <h1 id="v-name" style="margin:0; text-transform:uppercase; letter-spacing:2px;"></h1>
-                <div id="v-job" style="color:var(--accent); font-weight:bold; margin:10px 0;"></div>
-                <div id="v-loc" style="color:#8b949e; font-size:0.9em;"></div>
-                <div id="v-level" style="border:1px solid #8b949e; display:inline-block; padding:2px 8px; margin-top:10px; font-size:0.8em;"></div>
+        <div style="display:flex; gap:30px;">
+            <img id="v-avatar" style="width:150px; height:150px; border-radius:50%; object-fit:cover; border:3px solid #30363d;">
+            <div style="flex:1">
+                <h1 id="v-name" style="margin:0"></h1>
+                <div id="v-badges" style="margin: 10px 0;"></div>
+                <p id="v-job" style="color:var(--accent); margin:5px 0;"></p>
+                <p id="v-loc" style="font-size:0.9em; color:#8b949e"></p>
             </div>
         </div>
 
-        <div style="background:#0d1117; padding:30px; border:1px solid #30363d; margin-top:30px;">
-            <h3 style="margin-top:0; border-bottom:1px solid #30363d; padding-bottom:10px;">RAPPORT BIOGRAPHIQUE</h3>
-            <p id="v-bio" style="line-height:1.6; white-space: pre-wrap;"></p>
+        <div style="margin-top:20px; background:#161b22; padding:20px; border-radius:8px;">
+            <p id="v-bio" style="white-space: pre-wrap;"></p>
         </div>
 
-        <div id="v-stats" style="margin-top:30px;"></div>
+        <div class="casier-container">
+            <h3 style="margin-top:0;">📂 CASIER & RAPPORTS</h3>
+            <div id="v-rapports"></div>
+        </div>
 
-        <div id="admin-editor" class="admin-box">
-            <h2 style="color:var(--accent); margin-top:0;">EDITER LE DOSSIER</h2>
-            
-            <div style="background:#21262d; padding:10px; margin-bottom:20px; font-size:0.9em;">
-                <b>ASTUCE CENSURE :</b><br>
-                1. Cochez les cases ci-dessous pour masquer tout le champ.<br>
-                2. Dans la Bio, écrivez entre étoiles pour masquer un mot (ex: **Secret**).
-            </div>
-
-            <div class="censure-grid" id="censure-checks">
-                <label><input type="checkbox" value="prenom"> Masquer Prénom</label>
-                <label><input type="checkbox" value="nom"> Masquer Nom</label>
-                <label><input type="checkbox" value="profession"> Masquer Job</label>
-                <label><input type="checkbox" value="localisation"> Masquer Lieu</label>
-                <label><input type="checkbox" value="bio"> Masquer Bio</label>
-                <label><input type="checkbox" value="stats"> Masquer Stats</label>
-                <label><input type="checkbox" value="avatar"> Masquer Photo</label>
-            </div>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-                <input type="text" id="ed-id" placeholder="ID Unique (ex: user_01)">
-                <input type="text" id="ed-pass" placeholder="Mot de Passe du Dossier">
+        <div id="admin-editor" class="admin-box" style="display:none;">
+            <h3>ÉDITION ADMIN</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <input type="text" id="ed-id" placeholder="ID Unique">
+                <input type="text" id="ed-pass" placeholder="Mot de Passe Profil">
                 <input type="text" id="ed-prenom" placeholder="Prénom">
                 <input type="text" id="ed-nom" placeholder="Nom">
                 <input type="text" id="ed-job" placeholder="Profession">
                 <input type="text" id="ed-loc" placeholder="Localisation">
             </div>
+            <textarea id="ed-bio" placeholder="Bio... (Utilisez ** pour censurer)"></textarea>
+            
+            <label>Badges (séparés par une virgule)</label>
+            <input type="text" id="ed-badges" placeholder="Ex: Elite, Suspect, VIP">
 
-            <label>Niveau de Menace</label>
-            <select id="ed-level">
-                <option>Niveau 1 - Surveillance</option>
-                <option>Niveau 2 - Danger</option>
-                <option>Niveau 3 - Critique</option>
-                <option>Niveau 4 - Élimination</option>
-            </select>
-
-            <label>Avatar URL</label>
-            <input type="text" id="ed-avatar">
-
-            <label>Biographie (Utilisez **mot** pour censurer)</label>
-            <textarea id="ed-bio" rows="6"></textarea>
-
-            <div style="margin-top:20px;">
-                <div style="display:flex; justify-content:space-between;"><b>STATISTIQUES</b> <button onclick="addStatRow()">+</button></div>
-                <div id="ed-stats-area"></div>
+            <div style="background:#0d1117; padding:15px; border-radius:8px; margin-top:20px;">
+                <h4>AJOUTER UN RAPPORT AU CASIER</h4>
+                <textarea id="rep-texte" placeholder="Détails du rapport..."></textarea>
+                <label>Niveau d'importance (-5 à +5) :</label>
+                <input type="number" id="rep-imp" value="0" min="-5" max="5">
+                <button onclick="addReport()" class="btn" style="background:var(--accent); color:white; width:100%;">Ajouter au casier</button>
             </div>
 
-            <button onclick="save()" class="btn btn-save">💾 SAUVEGARDER</button>
-            <button onclick="remove()" class="btn btn-del">SUPPRIMER</button>
+            <button onclick="save()" class="btn" style="background:var(--success); color:white; width:100%; margin-top:20px;">SAUVEGARDER LE DOSSIER</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ⚠️ REMPLACE PAR TON URL NGROK ICI (SANS LE SLASH À LA FIN)
     const API = "https://economically-pseudoetymological-serenity.ngrok-free.dev";
-    
     let ADMIN_CODE = "";
 
-    // Charge la liste publique
     async function loadPublic() {
-        try {
-            const r = await fetch(`${API}/public_list`, {headers: {"ngrok-skip-browser-warning": "1"}});
-            const ids = await r.json();
-            const grid = document.getElementById('main-grid');
-            grid.innerHTML = ids.map(id => `
-                <div class="public-card" onclick="openProfile('${id}')">
-                    <div style="font-size:1.5em; font-weight:bold;">${id}</div>
-                    <div style="font-size:0.8em; margin-top:10px; color:#8b949e">CLASSIFIED FILE</div>
-                </div>
-            `).join('');
-        } catch(e) { console.error("Erreur connexion API"); }
+        const r = await fetch(`${API}/public_list`, { headers: {"ngrok-skip-browser-warning":"1"} });
+        const ids = await r.json();
+        document.getElementById('main-grid').innerHTML = ids.map(id => `
+            <div class="public-card" onclick="openProfile('${id}')">
+                <div style="font-weight:bold; color:var(--accent);">${id}</div>
+                <div style="font-size:10px; color:#555; margin-top:5px;">DOSSIER SCÉLLÉ</div>
+            </div>
+        `).join('');
     }
 
-    // Ouvre un dossier
     async function openProfile(id) {
-        let pass = "";
-        // Si on n'est pas admin, on doit entrer le MDP du profil
-        if(!ADMIN_CODE) {
-            pass = prompt("IDENTIFICATION REQUISE (Mot de passe du dossier) :");
-            if(!pass) return;
-        }
+        let pass = ADMIN_CODE ? "" : prompt("Mot de passe du dossier :");
+        if(!ADMIN_CODE && !pass) return;
 
         const r = await fetch(`${API}/get_details`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "1"},
+            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning":"1"},
             body: JSON.stringify({id: id, password: pass, admin_code: ADMIN_CODE})
         });
 
-        if(r.ok) {
-            renderProfile(await r.json());
-        } else {
-            alert("ACCÈS REFUSÉ : Mot de passe incorrect.");
-        }
+        if(r.ok) renderProfile(await r.json());
+        else alert("Accès interdit.");
     }
 
-    // Affiche le profil et gère la censure visuelle
     function renderProfile(d) {
         document.getElementById('profile-page').style.display = "block";
-
-        // Fonction magique qui transforme les blocs noirs du serveur en HTML style
-        const fmt = (txt) => {
-            if(!txt) return "";
-            // Remplace les blocs du serveur par des spans stylisés
-            return txt.replace(/██████████/g, '<span class="redacted">CONFIDENTIAL</span>'); 
-        };
-
-        // Remplissage Vue Publique
-        document.getElementById('v-avatar').src = d.avatar || "https://via.placeholder.com/150?text=NO+IMAGE";
+        
+        const fmt = (t) => t ? t.replace(/██████████/g, '<span class="redacted">CONFIDENTIEL</span>') : "";
+        
+        document.getElementById('v-avatar').src = d.avatar || "https://via.placeholder.com/150";
         document.getElementById('v-name').innerHTML = `${fmt(d.prenom)} ${fmt(d.nom)}`;
         document.getElementById('v-job').innerHTML = fmt(d.profession);
-        document.getElementById('v-loc').innerHTML = `DERNIÈRE POSITION : ${fmt(d.localisation)}`;
+        document.getElementById('v-loc').innerHTML = `Localisation: ${fmt(d.localisation)}`;
         document.getElementById('v-bio').innerHTML = fmt(d.bio);
-        document.getElementById('v-level').innerText = d.niveau || "N/A";
 
-        // Stats
-        let sHtml = "<h3>PARAMÈTRES VITAUX</h3>";
-        if(d.stats && d.stats["DONNÉES"] === 0) {
-            sHtml += "<div class='redacted'>DONNÉES STATISTIQUES MASQUÉES</div>";
-        } else {
-            Object.entries(d.stats).forEach(([k,v]) => {
-                sHtml += `<div style="margin-top:10px; font-size:0.8em;">${k} (${v}%)</div>
-                          <div class="stat-bar"><div class="stat-fill" style="width:${v}%"></div></div>`;
-            });
-        }
-        document.getElementById('v-stats').innerHTML = sHtml;
+        // Affichage des Badges
+        const badgeContainer = document.getElementById('v-badges');
+        badgeContainer.innerHTML = d.badges.split(',').map(b => b.trim() ? `<span class="badge ${b.toLowerCase() === 'vip' ? 'badge-vip' : ''}">${b.trim()}</span>` : '').join('');
 
-        // Remplissage Admin (si connecté)
-        if(d.is_admin) {
+        // Affichage des Rapports
+        const rapContainer = document.getElementById('v-rapports');
+        rapContainer.innerHTML = d.rapports.map(r => {
+            let type = "rap-neutre";
+            if(r.importance > 0) type = "rap-pos";
+            if(r.importance < 0) type = "rap-neg";
+            return `<div class="rapport-item ${type}"><strong>[${r.date}] (Imp: ${r.importance})</strong><br>${r.texte}</div>`;
+        }).join('') || "Aucun rapport dans le casier.";
+
+        if(ADMIN_CODE) {
             document.getElementById('admin-editor').style.display = "block";
-            
-            // On remplit les champs avec les vraies valeurs
             document.getElementById('ed-id').value = d.id;
-            document.getElementById('ed-id').disabled = true; // On ne change pas l'ID
+            document.getElementById('ed-id').disabled = true;
             document.getElementById('ed-prenom').value = d.prenom;
             document.getElementById('ed-nom').value = d.nom;
-            document.getElementById('ed-pass').value = d.password; // Admin voit le MDP
+            document.getElementById('ed-pass').value = d.password; // Bug fixé : on charge le vrai mdp
             document.getElementById('ed-job').value = d.profession;
             document.getElementById('ed-loc').value = d.localisation;
-            document.getElementById('ed-level').value = d.niveau;
-            document.getElementById('ed-avatar').value = d.avatar;
-            document.getElementById('ed-bio').value = d.bio; // Admin voit le texte avec les **
-            
-            // Cocher les cases de censure
-            document.querySelectorAll('#censure-checks input').forEach(cb => {
-                cb.checked = d.censored.includes(cb.value);
-            });
-
-            // Stats éditables
-            const area = document.getElementById('ed-stats-area');
-            area.innerHTML = "";
-            Object.entries(d.stats).forEach(([k,v]) => addStatRow(k,v));
-        } else {
-            document.getElementById('admin-editor').style.display = "none";
+            document.getElementById('ed-bio').value = d.bio;
+            document.getElementById('ed-badges').value = d.badges;
         }
     }
 
-    // Fonctions utilitaires Admin
-    function addStatRow(k="", v=50) {
-        const div = document.createElement('div');
-        div.className = "stat-row";
-        div.style = "display:flex; gap:10px; margin-top:5px;";
-        div.innerHTML = `<input type="text" class="sk" value="${k}" placeholder="Nom Stat"> <input type="number" class="sv" value="${v}" style="width:70px">`;
-        document.getElementById('ed-stats-area').appendChild(div);
-    }
-
-    function openNew() {
-        // Ouvre un profil vide pour création
-        renderProfile({
-            id:"", prenom:"", nom:"", bio:"", avatar:"", profession:"", localisation:"", niveau:"Niveau 1",
-            stats:{}, censored:[], password:"", is_admin:true
-        });
-        document.getElementById('ed-id').disabled = false;
-        document.getElementById('ed-id').value = "";
+    async function addReport() {
+        const data = {
+            id: document.getElementById('ed-id').value,
+            texte: document.getElementById('rep-texte').value,
+            importance: parseInt(document.getElementById('rep-imp').value),
+            admin_code: ADMIN_CODE
+        };
+        await fetch(`${API}/add_rapport`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)});
+        alert("Rapport ajouté !");
+        openProfile(data.id); // Refresh
     }
 
     async function save() {
-        // Récupère les stats
-        const stats = {};
-        document.querySelectorAll('.stat-row').forEach(row => {
-            const k = row.querySelector('.sk').value;
-            const v = row.querySelector('.sv').value;
-            if(k) stats[k] = parseInt(v);
-        });
-
-        // Récupère les censures cochées
-        const censored = Array.from(document.querySelectorAll('#censure-checks input:checked')).map(cb => cb.value);
-
-        const payload = {
+        const p = {
             id: document.getElementById('ed-id').value,
             prenom: document.getElementById('ed-prenom').value,
             nom: document.getElementById('ed-nom').value,
             categories: ["User"], status: "Actif",
             bio: document.getElementById('ed-bio').value,
-            avatar: document.getElementById('ed-avatar').value,
-            stats: stats,
-            profile_pass: document.getElementById('ed-pass').value,
+            avatar: "", stats: {}, 
+            profile_pass: document.getElementById('ed-pass').value || "1234",
             profession: document.getElementById('ed-job').value,
             localisation: document.getElementById('ed-loc').value,
-            niveau: document.getElementById('ed-level').value,
-            censored: censored,
-            admin_code: ADMIN_CODE
+            niveau: "N/A", admin_code: ADMIN_CODE, censored: [],
+            badges: document.getElementById('ed-badges').value
         };
-
-        if(!payload.id || !payload.profile_pass) return alert("ID et Mot de passe requis !");
-
-        await fetch(`${API}/update`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "1"},
-            body: JSON.stringify(payload)
-        });
-        
-        closeProfile();
-        loadPublic();
-    }
-
-    async function remove() {
-        if(!confirm("Supprimer ce dossier définitivement ?")) return;
-        await fetch(`${API}/delete`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json', "ngrok-skip-browser-warning": "1"},
-            body: JSON.stringify({id: document.getElementById('ed-id').value, code: ADMIN_CODE})
-        });
-        closeProfile();
-        loadPublic();
+        await fetch(`${API}/update`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p)});
+        closeProfile(); loadPublic();
     }
 
     function askAdmin() {
-        const p = prompt("CODE ADMINISTRATEUR :");
+        const p = prompt("Code Admin :");
         if(p === "ExpA22") {
             ADMIN_CODE = p;
-            document.getElementById('admin-btn').innerText = "ADMIN ACTIVE";
-            document.getElementById('admin-btn').style.color = "#ef4444";
             document.getElementById('btn-new').style.display = "block";
-            alert("MODE ADMIN ACTIVÉ : Accès illimité.");
-        } else {
-            alert("Code erroné.");
+            alert("Mode Admin Activé");
         }
     }
 
-    function closeProfile() {
-        document.getElementById('profile-page').style.display = "none";
+    function openNew() {
+        renderProfile({id:"", prenom:"", nom:"", bio:"", avatar:"", profession:"", localisation:"", badges:"", rapports:[], is_admin:true});
+        document.getElementById('ed-id').disabled = false;
     }
 
-    // Démarrage
+    function closeProfile() { document.getElementById('profile-page').style.display = "none"; }
     loadPublic();
 </script>
 </body>
