@@ -2,71 +2,71 @@
 <html lang="fr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <title>Navigator Pro v11.5</title>
-    <link rel="icon" type="image/png" href="https://giannioff.github.io/Friends2/faviconWeb.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigator OS</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="logo">NAVIGATOR <span>PRO</span></div>
-        <div class="nav-controls">
-            <button onclick="toggleTheme()" class="btn-circle" id="theme-btn">☀️</button>
+    <nav class="top-nav">
+        <div class="logo">NAVIGATOR <span>v12</span></div>
+        <div class="nav-actions">
+            <button onclick="toggleTheme()" class="btn-icon">🌓</button>
             <button id="btn-new" onclick="openNew()" class="btn btn-accent hidden">+ Nouveau</button>
-            <button id="admin-btn" onclick="askAdmin()" class="btn btn-outline">Admin Login</button>
+            <button id="admin-btn" onclick="askAdmin()" class="btn btn-ghost">Admin</button>
         </div>
     </nav>
 
-    <main class="grid" id="main-grid"></main>
+    <main class="container">
+        <div id="grid" class="grid"></div>
+    </main>
 
-    <div id="profile-page" class="modal">
-        <div class="modal-content">
-            <header class="modal-nav">
-                <button onclick="closeProfile()" class="btn-text">← Retour à la liste</button>
-            </header>
-
-            <section class="profile-hero">
-                <img id="v-avatar" src="" alt="Avatar">
-                <div class="hero-text">
-                    <h1 id="v-name"></h1>
-                    <div id="v-badges" class="badge-row"></div>
-                    <p id="v-job" class="sub-info"></p>
-                    <p id="v-loc" class="muted"></p>
+    <div id="profile-overlay" class="overlay">
+        <div class="overlay-content">
+            <button onclick="closeProfile()" class="close-btn">&times;</button>
+            
+            <div class="profile-header">
+                <img id="v-avatar" src="" class="avatar">
+                <div class="profile-meta">
+                    <h2 id="v-name"></h2>
+                    <div id="v-badges" class="badges"></div>
+                    <p id="v-job" class="muted"></p>
                 </div>
-            </section>
+            </div>
 
-            <div class="profile-layout">
-                <div class="main-col">
-                    <div class="card bio-card">
-                        <h3>Détails du sujet</h3>
-                        <p id="v-bio"></p>
-                    </div>
-                    <div class="card">
-                        <h3>📂 Rapports d'incidents</h3>
-                        <div id="v-rapports"></div>
-                    </div>
-                </div>
+            <div class="tabs">
+                <button id="btn-tab-bio" class="tab-btn active" onclick="showTab('bio')">Informations</button>
+                <button id="btn-tab-raps" class="tab-btn" onclick="showTab('rapports')">Historique</button>
+                <button id="admin-tab-btn" class="tab-btn admin-only hidden" onclick="showTab('edit')">Édition</button>
+            </div>
 
-                <aside id="admin-editor" class="admin-sidebar hidden">
-                    <h3>Édition du dossier</h3>
+            <div id="tab-bio" class="tab-content">
+                <div class="card"><p id="v-bio"></p></div>
+            </div>
+
+            <div id="tab-rapports" class="tab-content hidden">
+                <div id="v-rapports" class="rapport-list"></div>
+            </div>
+
+            <div id="tab-edit" class="tab-content hidden">
+                <div class="edit-grid">
                     <input type="text" id="ed-id" placeholder="ID Unique">
-                    <input type="text" id="ed-pass" placeholder="Mot de Passe">
+                    <input type="text" id="ed-pass" placeholder="Mot de passe">
                     <input type="text" id="ed-prenom" placeholder="Prénom">
                     <input type="text" id="ed-nom" placeholder="Nom">
                     <input type="text" id="ed-job" placeholder="Profession">
-                    <input type="text" id="ed-loc" placeholder="Localisation">
-                    <textarea id="ed-bio" placeholder="Biographie (**censure**)"></textarea>
-                    <input type="text" id="ed-badges" placeholder="Badges (ex: VIP, Elite)">
-                    
-                    <div class="report-box">
-                        <h4>Nouveau Rapport</h4>
-                        <textarea id="rep-texte" placeholder="Détails de l'acte..."></textarea>
-                        <input type="number" id="rep-imp" value="0" title="Importance">
-                        <button onclick="addReport()" class="btn btn-outline">Ajouter Rapport</button>
+                    <textarea id="ed-bio" placeholder="Bio (Utilisez **texte** pour censurer)"></textarea>
+                    <input type="text" id="ed-badges" placeholder="Badges (séparés par virgule)">
+                    <div class="admin-actions">
+                        <button onclick="save()" class="btn btn-accent">Enregistrer les modifications</button>
+                        <button onclick="remove()" class="btn btn-danger">Supprimer le sujet</button>
                     </div>
-
-                    <button onclick="save()" class="btn btn-accent full">Sauvegarder</button>
-                    <button onclick="remove()" class="btn btn-danger full">Supprimer le dossier</button>
-                </aside>
+                </div>
+                <hr>
+                <div class="report-form">
+                    <h4>Ajouter un nouvel incident</h4>
+                    <textarea id="rep-texte" placeholder="Détails du rapport..."></textarea>
+                    <button onclick="addReport()" class="btn btn-outline">Ajouter Rapport</button>
+                </div>
             </div>
         </div>
     </div>
